@@ -5,13 +5,14 @@ import com.samsungsds.contact.entity.ContactGroupMember.ContactUserIdInProjectio
 
 import com.samsungsds.contact.entity.ContactGroupMemberId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+@Repository
 public interface ContactGroupMemberRepository extends JpaRepository<ContactGroupMember, ContactGroupMemberId> {
-    List<ContactGroupMember> findByGroupIdIn(List<Long> groupIds);
+    List<ContactGroupMember> findByGroupId(Long groupId);
 
-    List<ContactUserIdInProjection> findByGroupIdIn(long groupId);
+    List<ContactUserIdInProjection> findAllProjectedByGroupId(long groupId);
 
 //    void deleteAllById(List<ContactGroupMemberId> contactGroupMemberIds);
 //    void saveAll(List<ContactGroupMemberId> contactGroupMemberIds);

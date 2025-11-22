@@ -10,7 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public class GroupListRequest {
-
     private List<GroupDto> groupList;
 
 }

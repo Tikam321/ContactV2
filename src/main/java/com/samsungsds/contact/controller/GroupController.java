@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/contact")
+@RequestMapping("/group")
 @RequiredArgsConstructor
 public class GroupController {
 
@@ -28,24 +28,24 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getGroupList(userId));
     }
 
-    @PostMapping("group/{userId}")
+    @PostMapping("/{userId}")
     public GroupListResponse createGroup(@PathVariable Long userId, @RequestParam String groupName) {
         return groupService.createGroup(groupName, userId);
     }
 
-    @PostMapping("group/modify/name/{userId}")
+    @PostMapping("/modify/name/{userId}")
     public ResponseEntity<Objects> updateGroupName(@PathVariable Long userId, @RequestParam Long  groupId, @RequestParam String groupName) {
         groupService.updateGroupName(userId, groupId, groupName);
         return  ResponseEntity.ok().build();
     }
 
-    @PostMapping("group/modify/member/{userId}")
+    @PostMapping("/modify/member/{userId}")
     public ResponseEntity<Objects> updateGroupMember(@PathVariable Long userId, @RequestBody @NonNull GroupRequest groupRequest) {
         groupService.updateGroupMember(groupRequest, userId );
         return  ResponseEntity.ok().build();
     }
 
-    @PostMapping("group/modify/member/{userId}")
+    @PostMapping("/modify/group/delete/{userId}")
     public ResponseEntity<Objects> deleteGroup(@PathVariable Long userId, @RequestBody @NonNull GroupListRequest groupListRequest) {
         groupService.deleteGroup(groupListRequest, userId);
         return  ResponseEntity.ok().build();

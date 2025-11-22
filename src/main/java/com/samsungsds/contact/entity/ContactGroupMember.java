@@ -12,6 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "ctct_grp_memb")
+@IdClass(ContactGroupMemberId.class)
 public class ContactGroupMember {
 
     @Id
@@ -28,7 +29,6 @@ public class ContactGroupMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ctct_usr_id")
     private Long contactUserId;
-
 
     @Column(name = "grp_nm")
     private String groupName;
@@ -48,8 +48,8 @@ public class ContactGroupMember {
         this.contactUserId = contactUserId;
     }
 
-    public record ContactUserIdInProjection(Long contactUserId) {
-
+    public interface ContactUserIdInProjection {
+       Long getContactUserId();
     }
 }
 

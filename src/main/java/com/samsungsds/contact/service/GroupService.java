@@ -14,6 +14,7 @@ import com.samsungsds.contact.repository.contact.ContactGroupMemberRepository;
 import com.samsungsds.contact.repository.contact.ContactGroupRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -30,22 +31,37 @@ public class GroupService {
     private final  ContactGroupRepository  contactGroupRepository;
     private final ContactGroupMemberRepository contactGroupMemberRepository;
     private final ContactGroupProperties contactGroupProperties;
+    private final GroupCacheService groupCacheService;
 
+//    @Cacheable(value = "groupMembersCache", key = "#groupId")
+//    public List<GroupDto> getGroupMembers(Long groupId) {
+//        return groupService.getGroupMembers(groupId);
+//    }
+//
     public List<GroupDto> getGroupList(long userId) {
         List<ContactGroup> contactGroups = contactGroupRepository
-                .findAllByOwnerUserIdOrOrderByGroupNameAsc(userId);
+                .findAllByOwnerUserIdOrderByGroupNameAsc(userId);
+        System.out.println("groupId" + contactGroups.get(0).getGroupId());
         return getGroups(contactGroups);
     }
 
     private List<GroupDto> getGroups(List<ContactGroup> contactGroups) {
        List<Long> groupIds = contactGroups.stream().map(ContactGroup::getGroupId).toList();
-        Map<Long, List<Long>> groupMemberMap = contactGroupMemberRepository.findByGroupIdIn(groupIds).stream().collect(groupingBy(ContactGroupMember::getGroupId,
-                mapping(ContactGroupMember::getContactUserId, Collectors.toList())));
-
+        Map<Long, List<Long>> groupMemberMap = new HashMap<>();
+        for(Long groupId:groupIds) {
+            groupMemberMap.put(groupId, groupCacheService.getMembersByGroupId(groupId));
+        }
+//                contactGroupMemberRepository.findByGroupIdIn(groupIds).stream().collect(groupingBy(ContactGroupMember::getGroupId,
+//                mapping(ContactGroupMember::getContactUserId, Collectors.toList())));
         return contactGroups.stream()
                 .map(group -> GroupDto.from(group, groupMemberMap.get(group.getGroupId())))
                 .collect(Collectors.toList());
 
+    }
+
+    @Cacheable(value = "groupMemberIcCache", key = "#groupId")
+    public List<Long> getMembersByGroupId(Long groupId) {
+        return contactGroupMemberRepository.findByGroupId(groupId).stream().map(ContactGroupMember::getContactUserId).toList();
     }
 
     public GroupListResponse createGroup(String groupName, Long userId) {
@@ -86,7 +102,7 @@ public class GroupService {
         Set<Long> newGroupMembers = new HashSet<Long>(reqGroupMemberIds);
         Long reqGroupId = group.getGroupID();
 
-        checkGroupMemberLimit(reqGroupMemberIds.size());
+//        checkGroupMemberLimit(reqGroupMemberIds.size());
 
         Set<Long> groupMembers = getGroupMembers(group.getGroupID());
         Set<Long> membersToAdd = newGroupMembers.stream()
@@ -95,15 +111,17 @@ public class GroupService {
         Set<Long> memebrsToDelete = groupMembers.stream()
                 .filter(memberId -> !newGroupMembers.contains(memberId)).collect(Collectors.toSet());
 
-        deleteContactGroupMember(reqGroupId, memebrsToDelete, userId);
+//        deleteContactGroupMember(reqGroupId, memebrsToDelete, userId);
         addContactGroupMember(reqGroupId, membersToAdd,userId);
 
     }
 
     private void addContactGroupMember(Long reqGroupId, Set<Long> membersToAdd, Long userId) {
-        List<ContactGroupMember> groupMemberIds = membersToAdd.stream()
-                .map(memberId -> new ContactGroupMember(reqGroupId,userId, memberId)).toList();
-        contactGroupMemberRepository.saveAll(groupMemberIds);
+        groupCacheService.addGroupMember(reqGroupId,membersToAdd,userId);
+//        List<ContactGroupMember> groupMemberIds = membersToAdd.stream()
+//                .map(memberId -> new ContactGroupMember(reqGroupId,userId, memberId)).toList();
+//
+//        contactGroupMemberRepository.saveAll(groupMemberIds);
     }
 
     private void deleteContactGroupMember(Long reqGroupId, Set<Long> memebrsToDelete, Long userId) {
@@ -114,8 +132,8 @@ public class GroupService {
     }
 
     public Set<Long> getGroupMembers(Long groupId) {
-        return contactGroupMemberRepository.findByGroupIdIn(groupId).stream()
-                .map(ContactGroupMember.ContactUserIdInProjection::contactUserId).collect(Collectors.toSet());
+        return contactGroupMemberRepository.findAllProjectedByGroupId(groupId).stream()
+                .map(ContactGroupMember.ContactUserIdInProjection::getContactUserId).collect(Collectors.toSet());
     }
 
     private void checkGroupMemberLimit(int groupMemberSize) {
@@ -146,7 +164,7 @@ public class GroupService {
 
     private List<ContactGroup> getContactGroups(Long userId) {
         List<ContactGroup> contactGroups = contactGroupRepository
-                .findAllByOwnerUserIdOrOrderByGroupNameAsc(userId);
+                .findAllByOwnerUserIdOrderByGroupNameAsc(userId);
         return contactGroups;
     }
 

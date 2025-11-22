@@ -16,7 +16,6 @@ public class GroupDto {
     private final Integer order;
     private List<Long> userIdlist;
 
-
     public static GroupDto from(ContactGroup contactGroup, List<Long> userIds) {
         return new GroupDto(contactGroup.getGroupId(),
                 contactGroup.getGroupName(),

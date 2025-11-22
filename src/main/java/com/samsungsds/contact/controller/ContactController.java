@@ -18,10 +18,15 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/contact")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class ContactController {
     private final GroupService groupService;
     private final ContactService contactService;
+
+    public ContactController(GroupService groupService, ContactService contactService) {
+        this.groupService = groupService;
+        this.contactService = contactService;
+    }
 
     @GetMapping("/list/{userId}")
     public ResponseEntity<List<GroupDto>> getContactList(@PathVariable Long userId) {

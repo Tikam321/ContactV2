@@ -22,6 +22,5 @@ public class ContactGroupMemberId implements Serializable {
 
     @Column(name = "ctct_usr_id")
     private Long contactUserId;
-
 }
 
