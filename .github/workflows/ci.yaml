@@ -59,8 +59,8 @@ jobs:
 
       - name: Update K8s Deployment Image
         run: |
-          sed -i "s|__IMAGE_TAG__|${{ github.sha }}|" k8s/contact-app.yaml
-          kubectl apply -f k8s/contact-app.yaml
+          sed -i "s|__IMAGE_TAG__|${{ github.sha }}|" k8s/application/contact.yaml
+          kubectl apply -f k8s/application/contact.yaml
 
       - name: Restart deployment
         run: kubectl rollout restart deployment contact-app
