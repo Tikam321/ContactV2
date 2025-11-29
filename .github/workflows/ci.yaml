@@ -28,3 +28,14 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t tikam321/contact-app .
+          docker push tikam321/contact-app

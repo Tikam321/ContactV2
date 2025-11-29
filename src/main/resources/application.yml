@@ -6,12 +6,12 @@ spring:
     hibernate:
       ddl-auto: update
   datasource:
-    url: jdbc:postgresql://localhost:5432/contact_db
+    url: jdbc:postgres://postgres:5432/contact_db
     username: postgres
     password: postgres
 
   redis:
-    host: localhost
+    host: redis
     port: 6379
 
 contact-group:

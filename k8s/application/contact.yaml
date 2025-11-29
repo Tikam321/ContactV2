@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contact-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: contact-app
+  template:
+    metadata:
+      labels:
+        app: contact-app
+    spec:
+      containers:
+        - name: contact-app
+          image: tikam321/contact-app:latest
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/contact_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: postgres
+
+            - name: SPRING_REDIS_HOST
+              value: redis
+            - name: SPRING_REDIS_PORT
+              value: "6379"
+
+          ports:
+            - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: contact-service
+spec:
+  selector:
+    app: contact-app
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: NodePort

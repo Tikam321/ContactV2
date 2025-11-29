@@ -19,3 +19,13 @@ services:
     container_name: redis_container
     ports:
       - "6379:6379"
+
+  contact-app:
+    image: localhost:5001/contact-app:latest
+    container_name: contact_container
+    ports:
+      - "80:8080"
+    depends_on:
+      - postgres
+      - redis
+
