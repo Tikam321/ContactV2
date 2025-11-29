@@ -19,7 +19,7 @@ public class RedisCacheConfig {
 
         config.put("groupMemberCache",
                 RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.ofSeconds(60)));   // auto-refresh every 30 mins
+                        .entryTtl(Duration.ofHours(24)));   // auto-refresh every 30 mins
 
         return RedisCacheManager.builder(connectionFactory)
                 .withInitialCacheConfigurations(config)

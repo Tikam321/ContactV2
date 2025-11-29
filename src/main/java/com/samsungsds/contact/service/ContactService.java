@@ -16,7 +16,4 @@ public class ContactService {
         List<GroupDto> groupDtoList = groupService.getGroupList(userId);
         return groupDtoList;
     }
-
-
-
 }

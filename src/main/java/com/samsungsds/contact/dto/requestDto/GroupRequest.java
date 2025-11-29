@@ -1,8 +1,10 @@
 package com.samsungsds.contact.dto.requestDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.util.List;
 @Getter

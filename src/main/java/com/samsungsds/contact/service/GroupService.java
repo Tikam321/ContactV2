@@ -88,12 +88,13 @@ public class GroupService {
         }
     }
 
+    @Transactional
     public void updateGroupName(Long userId, long groupId, String groupName) {
         checkGroupNameLength(groupName);
         ContactGroup contactGroup = contactGroupRepository.findByOwnerUserIdAndGroupId(userId, groupId)
                 .orElseThrow(() -> new ContactServiceException(NOT_EXISTED_GROUP));
         checkDuplicateGroupName(groupName, userId);
-        contactGroup.updateGroupName(groupName);
+        contactGroup.setGroupName(groupName);
     }
 
     @Transactional
@@ -111,7 +112,7 @@ public class GroupService {
         Set<Long> memebrsToDelete = groupMembers.stream()
                 .filter(memberId -> !newGroupMembers.contains(memberId)).collect(Collectors.toSet());
 
-//        deleteContactGroupMember(reqGroupId, memebrsToDelete, userId);
+        deleteContactGroupMember(reqGroupId, memebrsToDelete, userId);
         addContactGroupMember(reqGroupId, membersToAdd,userId);
 
     }

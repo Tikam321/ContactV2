@@ -26,7 +26,7 @@ public class GroupCacheService {
         List<ContactGroupMember> groupMemberIds = memberIds.stream()
                 .map(memberId -> new ContactGroupMember(groupId,userId, memberId)).toList();
         contactGroupMemberRepository.saveAll(groupMemberIds);
-        System.out.println("the group db cache is refreshed after new ad of member");
+        System.out.println("the group db cache is refreshed after new addition of members");
     }
 
 }

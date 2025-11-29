@@ -22,7 +22,4 @@ public class GroupDto {
                 contactGroup.getGroupDisplayOrderNo(),
                 userIds);
     }
-
-
-
 }

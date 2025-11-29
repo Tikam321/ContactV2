@@ -33,7 +33,7 @@ public class GroupController {
         return groupService.createGroup(groupName, userId);
     }
 
-    @PostMapping("/modify/name/{userId}")
+    @GetMapping("/modify/name/{userId}")
     public ResponseEntity<Objects> updateGroupName(@PathVariable Long userId, @RequestParam Long  groupId, @RequestParam String groupName) {
         groupService.updateGroupName(userId, groupId, groupName);
         return  ResponseEntity.ok().build();
