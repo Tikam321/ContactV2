@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macos]
 
     steps:
       - name: Checkout code
@@ -50,17 +50,17 @@ jobs:
           docker push tikam321/contact-app:${{ github.sha }}
           docker push tikam321/contact-app:latest
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+#      - name: Setup kubectl
+#        uses: azure/setup-kubectl@v3
+##
+#      - name: Configure kubeconfig
+#        run: |
+#          mkdir -p $HOME/.kube
+#          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
 
       - name: Update K8s Deployment Image
         run: |
-          sed -i "s|__IMAGE_TAG__|${{ github.sha }}|" k8s/application/contact.yaml
+          sed -i "" "s|__IMAGE_TAG__|${{ github.sha }}|" k8s/application/contact.yaml
           kubectl apply -f k8s/application/contact.yaml
 
       - name: Restart deployment
