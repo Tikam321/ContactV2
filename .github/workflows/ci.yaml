@@ -1,3 +1,73 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: 'self-hosted'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#
+#      - name: Build and push Docker image
+#        run: |
+#          docker build -t tikam321/contact-app .
+#          docker push tikam321/contact-app
+
+      - name: Build Docker Image (latest + SHA)
+        run: |
+          docker build -t tikam321/contact-app:${{ github.sha }} .
+          docker tag tikam321/contact-app:${{ github.sha }} tikam321/contact-app:latest
+
+      - name: Push Docker Images
+        run: |
+          docker push tikam321/contact-app:${{ github.sha }}
+          docker push tikam321/contact-app:latest
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+#
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+
+# for self hosted runner
+      - name: Update K8s Deployment Image
+        run: |
+          sed -i "" "s|__IMAGE_TAG__|${{ github.sha }}|" k8s/application/contact.yaml
+          kubectl apply -f k8s/application/contact.yaml
+
+      - name: Restart deployment
+        run: kubectl rollout restart deployment contact-app
+
+
 #name: CI Pipeline
 #
 #on:
@@ -29,46 +99,33 @@
 #      - name: Run tests
 #        run: ./gradlew test
 #
-#      - name: Login to Docker Hub
+#      # -----------------------------
+#      # 🔥 Step 1: Build image ONCE
+#      # -----------------------------
+#      - name: Build Docker Image Once
+#        run: |
+#          docker build -t contact-app:${{ github.sha }} .
+#          docker tag contact-app:${{ github.sha }} contact-app:latest
+#
+#      # -----------------------------
+#      # 🔥 Step 2: Push to DockerHub
+#      # -----------------------------
+#      - name: Login to DockerHub
 #        uses: docker/login-action@v3
 #        with:
 #          username: ${{ secrets.DOCKERHUB_USERNAME }}
 #          password: ${{ secrets.DOCKERHUB_TOKEN }}
-##
-##      - name: Build and push Docker image
-##        run: |
-##          docker build -t tikam321/contact-app .
-##          docker push tikam321/contact-app
 #
-#      - name: Build Docker Image (latest + SHA)
+#      - name: Push DockerHub Images
 #        run: |
-#          docker build -t tikam321/contact-app:${{ github.sha }} .
-#          docker tag tikam321/contact-app:${{ github.sha }} tikam321/contact-app:latest
-#
-#      - name: Push Docker Images
-#        run: |
+#          docker tag contact-app:${{ github.sha }} tikam321/contact-app:${{ github.sha }}
+#          docker tag contact-app:latest tikam321/contact-app:latest
 #          docker push tikam321/contact-app:${{ github.sha }}
 #          docker push tikam321/contact-app:latest
-#
-##      - name: Setup kubectl
-##        uses: azure/setup-kubectl@v3
-###
-##      - name: Configure kubeconfig
-##        run: |
-##          mkdir -p $HOME/.kube
-##          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
-#
-#
-### for self hosted runner
-##      - name: Update K8s Deployment Image
-##        run: |
-##          sed -i "" "s|__IMAGE_TAG__|${{ github.sha }}|" k8s/application/contact.yaml
-##          kubectl apply -f k8s/application/contact.yaml
-##
-##      - name: Restart deployment
-##        run: kubectl rollout restart deployment contact-app
-#
-### for aws ecr
+
+#      # -----------------------------
+#      # 🔥 Step 3: Push to AWS ECR
+#      # -----------------------------
 #      - name: Configure AWS credentials
 #        uses: aws-actions/configure-aws-credentials@v4
 #        with:
@@ -80,94 +137,11 @@
 #        id: login-ecr
 #        uses: aws-actions/amazon-ecr-login@v2
 #
-#      - name: Build Docker image
+#      - name: Push Docker Image to ECR
 #        run: |
-#          docker build -t ${{ secrets.ECR_REPOSITORY }} .
+#          docker tag contact-app:${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+#          docker tag contact-app:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
 #
-#      - name: Tag Docker image for ECR
-#        run: |
-#          docker tag ${{ secrets.ECR_REPOSITORY }}:latest \
-#          ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
-#
-#      - name: Push Docker image to ECR
-#        run: |
+#          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 #          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
-
-
-name: CI Pipeline
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x gradlew
-
-      - name: Build with Gradle
-        run: ./gradlew clean build -x test
-
-      - name: Run tests
-        run: ./gradlew test
-
-      # -----------------------------
-      # 🔥 Step 1: Build image ONCE
-      # -----------------------------
-      - name: Build Docker Image Once
-        run: |
-          docker build -t contact-app:${{ github.sha }} .
-          docker tag contact-app:${{ github.sha }} contact-app:latest
-
-      # -----------------------------
-      # 🔥 Step 2: Push to DockerHub
-      # -----------------------------
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push DockerHub Images
-        run: |
-          docker tag contact-app:${{ github.sha }} tikam321/contact-app:${{ github.sha }}
-          docker tag contact-app:latest tikam321/contact-app:latest
-          docker push tikam321/contact-app:${{ github.sha }}
-          docker push tikam321/contact-app:latest
-
-      # -----------------------------
-      # 🔥 Step 3: Push to AWS ECR
-      # -----------------------------
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Push Docker Image to ECR
-        run: |
-          docker tag contact-app:${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
-          docker tag contact-app:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
-
-          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
-          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
 
