@@ -27,7 +27,8 @@ spec:
               value: redis
             - name: SPRING_REDIS_PORT
               value: "6379"
-
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
           ports:
             - containerPort: 8080
 

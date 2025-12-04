@@ -64,13 +64,15 @@ public class GroupService {
         return contactGroupMemberRepository.findByGroupId(groupId).stream().map(ContactGroupMember::getContactUserId).toList();
     }
 
+    @Transactional
     public GroupListResponse createGroup(String groupName, Long userId) {
         checkGroupNameLength(groupName);
         checkDuplicateGroupName(groupName, userId);
 
+        contactGroupRepository.save(new ContactGroup(groupName, userId));
+
         List<GroupDto> groups = getGroupList(userId);
         return new GroupListResponse(groups);
-
     }
 
     private void checkDuplicateGroupName(String groupName, Long userId) {
