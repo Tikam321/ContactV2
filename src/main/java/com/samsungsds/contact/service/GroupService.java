@@ -8,22 +8,18 @@ import com.samsungsds.contact.dto.responseDto.GroupListResponse;
 import com.samsungsds.contact.entity.ContactGroup;
 import com.samsungsds.contact.entity.ContactGroupMember;
 import com.samsungsds.contact.entity.ContactGroupMemberId;
-import com.samsungsds.contact.exception.exception.ContactServiceException;
-import com.samsungsds.contact.exception.exception.ErrorType;
+import com.samsungsds.contact.exception.exception.ContactServerException;
 import com.samsungsds.contact.repository.contact.ContactGroupMemberRepository;
 import com.samsungsds.contact.repository.contact.ContactGroupRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.samsungsds.contact.exception.exception.ErrorType.*;
+import static com.samsungsds.contact.exception.ErrorType.*;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
 
 @RequiredArgsConstructor
 @Service
@@ -59,10 +55,10 @@ public class GroupService {
 
     }
 
-    @Cacheable(value = "groupMemberIcCache", key = "#groupId")
-    public List<Long> getMembersByGroupId(Long groupId) {
-        return contactGroupMemberRepository.findByGroupId(groupId).stream().map(ContactGroupMember::getContactUserId).toList();
-    }
+//    @Cacheable(value = "groupMemberIcCache", key = "#groupId")
+//    public List<Long> getMembersByGroupId(Long groupId) {
+//        return contactGroupMemberRepository.findByGroupId(groupId).stream().map(ContactGroupMember::getContactUserId).toList();
+//    }
 
     @Transactional
     public GroupListResponse createGroup(String groupName, Long userId) {
@@ -80,13 +76,13 @@ public class GroupService {
                 .existsByOwnerUserIdAndGroupName(userId, groupName);
 
         if (isGroupNameExist) {
-            throw new ContactServiceException(EXISTED_GROUP, groupName);
+            throw new ContactServerException(EXISTED_GROUP, groupName);
         }
     }
 
     private void checkGroupNameLength(String groupName) {
         if (groupName.length() > contactGroupProperties.getNameLength()) {
-            throw new ContactServiceException(EXCEEDED_GROUP_LENGTH_LIMIT);
+            throw new ContactServerException(EXCEEDED_GROUP_LENGTH_LIMIT);
         }
     }
 
@@ -94,7 +90,7 @@ public class GroupService {
     public void updateGroupName(Long userId, long groupId, String groupName) {
         checkGroupNameLength(groupName);
         ContactGroup contactGroup = contactGroupRepository.findByOwnerUserIdAndGroupId(userId, groupId)
-                .orElseThrow(() -> new ContactServiceException(NOT_EXISTED_GROUP));
+                .orElseThrow(() -> new ContactServerException(NOT_EXISTED_GROUP));
         checkDuplicateGroupName(groupName, userId);
         contactGroup.setGroupName(groupName);
     }
@@ -141,7 +137,7 @@ public class GroupService {
 
     private void checkGroupMemberLimit(int groupMemberSize) {
         if (groupMemberSize > contactGroupProperties.getMaxCount()) {
-            throw new ContactServiceException(EXCEEDED_GROUP_LENGTH_LIMIT);
+            throw new ContactServerException(EXCEEDED_GROUP_LENGTH_LIMIT);
         }
     }
 
@@ -158,7 +154,6 @@ public class GroupService {
             deleteContactGroupMember(groupId, groupMembers,userId);
             deleteContactGroup(groupId);
         }
-
     }
 
     private void deleteContactGroup(Long groupId) {

@@ -1,18 +1,56 @@
+#spring:
+#  application:
+#    name: contact
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#  datasource:
+#    url: jdbc:postgresql://postgres:5432/contact_db
+#    username: postgres
+#    password: postgres
+#
+#  redis:
+#    host: redis
+#    port: 6379
+#
+#contact-group:
+#  max-count: 100
+#  name-length: 100
+
 spring:
   application:
     name: contact
 
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
-  datasource:
-    url: jdbc:postgresql://postgres:5432/contact_db
-    username: postgres
-    password: postgres
+    properties:
+      hibernate:
+        jdbc:
+          lob.non_contextual_creation: true
+    show-sql: false
 
   redis:
-    host: redis
-    port: 6379
+    host: ${SPRING_REDIS_HOST}
+    port: ${SPRING_REDIS_PORT}
+    password: ${SPRING_REDIS_PASSWORD}
+    timeout: 2000ms
+
+  cache:
+    type: redis
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
 
 contact-group:
   max-count: 100

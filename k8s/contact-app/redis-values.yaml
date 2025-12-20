@@ -1,0 +1,13 @@
+auth:
+  enabled: true
+  password: "MyRedisPassword123!"   # <-- Set your desired Redis password
+
+master:
+  persistence:
+    enabled: true
+    size: 1Gi     # Increase if needed
+
+replica:
+  replicaCount: 0  # Disable replicas for simple setups
+  persistence:
+    enabled: false

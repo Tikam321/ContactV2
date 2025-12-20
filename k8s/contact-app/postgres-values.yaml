@@ -1,0 +1,11 @@
+auth:
+  enablePostgresUser: true
+  postgresPassword: "MyPostgresPassword123!"   # password for postgres superuser
+  username: "postgres"                         # default
+  password: "MyPostgresPassword123!"           # same password for main user
+  database: "contact_db"                       # the DB you want created
+
+primary:
+  persistence:
+    enabled: true
+    size: 1Gi

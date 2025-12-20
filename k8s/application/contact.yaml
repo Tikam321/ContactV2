@@ -23,10 +23,10 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: postgres
 
-            - name: SPRING_REDIS_HOST
-              value: redis
-            - name: SPRING_REDIS_PORT
-              value: "6379"
+#            - name: SPRING_REDIS_HOST
+#              value: redis
+#            - name: SPRING_REDIS_PORT
+#              value: "6379"
             - name: SPRING_PROFILES_ACTIVE
               value: "k8s"
           ports:
@@ -44,4 +44,3 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
-  type: NodePort
